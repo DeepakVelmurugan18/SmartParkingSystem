@@ -7,8 +7,21 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchStatus();
     fetchLogs();
     fetchGateStatus();
-    setInterval(fetchCameraStream, 5000);
-    fetchCameraStream();
+    fetchGateStatus();
+    
+    socket.on('live_stream_entrance', (data) => {
+        const cam = document.getElementById('admin-entrance-cam');
+        document.getElementById('admin-entrance-placeholder').style.display = 'none';
+        cam.src = 'data:image/jpeg;base64,' + data.image;
+        cam.style.display = 'block';
+    });
+
+    socket.on('live_stream_exit', (data) => {
+        const cam = document.getElementById('admin-exit-cam');
+        document.getElementById('admin-exit-placeholder').style.display = 'none';
+        cam.src = 'data:image/jpeg;base64,' + data.image;
+        cam.style.display = 'block';
+    });
     
     socket.on('stats_update', (data) => {
         updateDashboard(data);
@@ -232,25 +245,4 @@ function addActivity(title, desc, typeClass) {
     feed.insertAdjacentHTML('afterbegin', item);
 }
 
-async function fetchCameraStream() {
-    try {
-        const res = await fetch('/api/camera/info');
-        const data = await res.json();
-        
-        const entranceCam = document.getElementById('admin-entrance-cam');
-        const entrancePlaceholder = document.getElementById('admin-entrance-placeholder');
-        
-        if (data.online && data.stream_url) {
-            if (entranceCam.src !== data.stream_url) {
-                entranceCam.src = data.stream_url;
-            }
-            entranceCam.style.display = 'block';
-            entrancePlaceholder.style.display = 'none';
-        } else {
-            entranceCam.style.display = 'none';
-            entrancePlaceholder.style.display = 'block';
-        }
-    } catch(e) {
-        console.error("Error fetching camera streams:", e);
-    }
-}
+

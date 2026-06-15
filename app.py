@@ -20,6 +20,7 @@ import re
 from flask_socketio import SocketIO, emit
 from flask_apscheduler import APScheduler
 from functools import wraps
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from logger import logger, log_sla, log_error
 
@@ -58,10 +59,11 @@ def db_rollback():
     log_sla("DB", "DB Rollback", duration_ms)
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'enterprise-secret-key')
 
 # Initialize SocketIO and APScheduler for real-time and background tasks
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
 def emit_socket_event(event_name, data=None):
     if data is None:
@@ -85,7 +87,8 @@ scheduler.start()
 # To use MySQL (as requested in the enterprise Tech Stack), uncomment the following line:
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:password@localhost/smart_parking'
 basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'smart_parking.db')
+default_db_url = 'sqlite:///' + os.path.join(basedir, 'smart_parking.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI', default_db_url)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Image Upload Configuration
@@ -670,6 +673,20 @@ def camera_upload():
         return jsonify({"success": True, "message": "Processing in background."})
     
     return jsonify({"success": False, "message": "Invalid file format."}), 400
+
+@app.route('/api/camera/stream', methods=['POST'])
+def camera_stream():
+    location = request.form.get('location', 'entrance')
+    if 'frame' in request.files:
+        file = request.files['frame']
+        if file:
+            img_bytes = file.read()
+            import base64
+            encoded = base64.b64encode(img_bytes).decode('ascii')
+            # Broadcast the frame to all connected clients
+            emit_socket_event(f'live_stream_{location}', {"image": encoded})
+            return jsonify({"success": True})
+    return jsonify({"success": False}), 400
 
 @app.route('/api/vehicle-exit', methods=['POST'])
 @time_api("Vehicle Exit")
