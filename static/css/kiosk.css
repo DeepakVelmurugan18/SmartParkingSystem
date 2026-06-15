@@ -1,0 +1,356 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&display=swap');
+
+:root {
+    --bg-base: #0b0f19;
+    --bg-panel: rgba(16, 22, 36, 0.75);
+    --bg-panel-hover: rgba(22, 30, 48, 0.9);
+    --primary-cyan: #00e5ff;
+    --primary-cyan-glow: rgba(0, 229, 255, 0.4);
+    --primary-blue: #2962ff;
+    --success: #00e676;
+    --success-glow: rgba(0, 230, 118, 0.4);
+    --danger: #ff1744;
+    --danger-glow: rgba(255, 23, 68, 0.4);
+    --warning: #ffea00;
+    --text-primary: #ffffff;
+    --text-secondary: #90caf9;
+    --border-light: rgba(144, 202, 249, 0.15);
+    --glass-blur: blur(20px);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+body {
+    background: radial-gradient(circle at 50% 0%, rgba(0, 229, 255, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 50% 100%, rgba(0, 230, 118, 0.05) 0%, transparent 40%),
+                var(--bg-base);
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px;
+}
+
+.glass-panel {
+    background: var(--bg-panel);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--border-light);
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(0, 229, 255, 0.02);
+}
+
+h1.kiosk-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #fff;
+    margin-bottom: 30px;
+    background: linear-gradient(90deg, #fff, var(--primary-cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.kiosk-wrapper {
+    width: 100%;
+    max-width: 1200px;
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+}
+
+.split-layout { 
+    display: flex; 
+    gap: 30px; 
+    align-items: stretch; 
+}
+
+@media(max-width: 900px) { 
+    .split-layout { flex-direction: column; } 
+}
+
+.camera-section {
+    flex: 1.2;
+    background: rgba(0,0,0,0.6);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+}
+
+.camera-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    color: var(--primary-cyan);
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.rec-indicator {
+    color: var(--danger);
+    font-size: 0.9rem;
+    animation: blink 1s infinite alternate;
+}
+
+.video-container {
+    position: relative;
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #000;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+video {
+    width: 100%;
+    display: block;
+}
+
+.status-bar {
+    margin-top: 15px;
+    padding: 10px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-family: monospace;
+    font-size: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.details-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.data-card {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s;
+}
+
+.data-label {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.data-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    font-family: monospace;
+}
+
+.value-highlight {
+    color: var(--primary-cyan);
+    text-shadow: 0 0 10px var(--primary-cyan-glow);
+    font-size: 2.5rem;
+    letter-spacing: 3px;
+}
+
+.value-success {
+    color: var(--success);
+    font-size: 3.5rem;
+}
+
+button.btn-primary {
+    background: rgba(0, 229, 255, 0.1);
+    color: var(--primary-cyan);
+    border: 1px solid var(--primary-cyan);
+    padding: 15px 30px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    width: 100%;
+}
+
+button.btn-primary:hover {
+    background: var(--primary-cyan);
+    color: #000;
+    box-shadow: 0 0 20px var(--primary-cyan-glow);
+}
+
+button.btn-success {
+    background: rgba(0, 230, 118, 0.1);
+    color: var(--success);
+    border: 1px solid var(--success);
+    padding: 15px 30px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    width: 100%;
+}
+
+button.btn-success:hover {
+    background: var(--success);
+    color: #000;
+    box-shadow: 0 0 20px var(--success-glow);
+}
+
+button.btn-outline {
+    background: transparent;
+    border: 1px solid var(--border-light);
+    color: var(--text-secondary);
+    padding: 15px 30px;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    width: 100%;
+}
+
+button.btn-outline:hover {
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+    border-color: #fff;
+}
+
+.qr-box {
+    text-align: center;
+    padding: 10px;
+}
+
+.qr-box img {
+    width: 150px;
+    height: 150px;
+    border: 2px solid var(--border-light);
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.overlay-screen {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(11, 15, 25, 0.95);
+    backdrop-filter: blur(10px);
+    z-index: 100;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border-radius: 20px;
+}
+
+input[type="text"] {
+    background: rgba(0,0,0,0.5);
+    border: 1px solid var(--primary-cyan);
+    color: #fff;
+    font-size: 2rem;
+    font-weight: 700;
+    text-align: center;
+    padding: 15px;
+    border-radius: 8px;
+    font-family: monospace;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 25px;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    box-shadow: 0 0 20px var(--primary-cyan-glow);
+}
+
+@keyframes blink {
+    from { opacity: 0.5; }
+    to { opacity: 1; text-shadow: 0 0 10px var(--danger); }
+}
+
+@keyframes scanEffect {
+    0% { top: 0; opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { top: 100%; opacity: 1; }
+}
+
+.scanner-line {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 2px;
+    background: var(--warning);
+    box-shadow: 0 0 15px 5px var(--warning-glow);
+    display: none;
+    z-index: 10;
+}
+
+/* Automated Traffic Light Styles */
+.traffic-light-banner {
+    width: 100%;
+    padding: 15px;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 900;
+    letter-spacing: 2px;
+    border-radius: 8px 8px 0 0;
+    margin-bottom: -1px;
+    border: 2px solid transparent;
+    border-bottom: none;
+    transition: all 0.3s;
+}
+
+.traffic-red {
+    background: rgba(255, 23, 68, 0.1);
+    color: var(--danger);
+    border-color: var(--danger);
+    box-shadow: 0 -10px 30px var(--danger-glow);
+}
+
+.traffic-green {
+    background: rgba(0, 230, 118, 0.1);
+    color: var(--success);
+    border-color: var(--success);
+    box-shadow: 0 -10px 30px var(--success-glow);
+}
+
+.traffic-yellow {
+    background: rgba(255, 234, 0, 0.1);
+    color: var(--warning);
+    border-color: var(--warning);
+    box-shadow: 0 -10px 30px var(--warning-glow);
+}
+
+.camera-border-red {
+    border: 3px solid var(--danger) !important;
+    box-shadow: 0 0 30px var(--danger-glow) !important;
+}
+
+.camera-border-green {
+    border: 3px solid var(--success) !important;
+    box-shadow: 0 0 30px var(--success-glow) !important;
+}
+
+.camera-border-yellow {
+    border: 3px solid var(--warning) !important;
+    box-shadow: 0 0 30px var(--warning-glow) !important;
+}

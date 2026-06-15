@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Command Center | Smart Parking</title>
+    
+    <!-- Fonts: Space Grotesk & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            var(--navy-base): #0B1220;
+            --navy-base: #0B1220;
+            --navy-light: #121C2F;
+            --slate: #1E293B;
+            --slate-border: rgba(30, 41, 59, 0.8);
+            --cyan-accent: #06B6D4;
+            --text-primary: #F8FAFC;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--navy-base);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        /* Subtle Background */
+        .bg-pattern {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: 
+                radial-gradient(circle at 50% -20%, rgba(6, 182, 212, 0.15) 0%, transparent 50%),
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+            z-index: -1;
+        }
+
+        /* Header */
+        header {
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--slate-border);
+            background: rgba(11, 18, 32, 0.8);
+            backdrop-filter: blur(12px);
+            z-index: 10;
+            position: sticky;
+            top: 0;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .brand svg {
+            color: var(--cyan-accent);
+        }
+
+        .brand h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 16px;
+        }
+        
+        .nav-links a {
+            color: #94A3B8;
+            text-decoration: none;
+            font-size: 0.9rem;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        
+        .nav-links a:hover {
+            color: var(--text-primary);
+            background: var(--slate);
+        }
+
+        /* Dashboard Grid - Scrolling Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            padding: 24px;
+            flex: 1;
+            max-width: 1800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .iframe-container {
+            background: var(--navy-light);
+            border: 1px solid var(--slate-border);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            /* Let container height be determined by its scaled iframe */
+        }
+
+        .iframe-container.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .iframe-header {
+            padding: 8px 16px;
+            background: rgba(30, 41, 59, 0.5);
+            border-bottom: 1px solid var(--slate-border);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--cyan-accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 10;
+        }
+
+        .live-dot {
+            width: 6px;
+            height: 6px;
+            background-color: #ef4444;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #ef4444;
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .iframe-wrapper {
+            width: 100%;
+            /* Height will be explicitly set to match visual height of scaled iframe */
+            height: 700px; 
+            position: relative;
+            background: var(--navy-base);
+            overflow: hidden;
+        }
+        
+        .iframe-wrapper.admin-wrapper {
+            height: 900px;
+        }
+
+        iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 150%; 
+            height: 1050px; /* 150% of 700px */
+            transform: scale(0.6666); 
+            transform-origin: top left;
+            border: none;
+            background: var(--navy-base);
+        }
+
+        .admin-wrapper iframe {
+            width: 120%;
+            height: 1080px; /* 120% of 900px */
+            transform: scale(0.8333);
+        }
+
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+
+    <header>
+        <a href="/" class="brand">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="3" y1="9" x2="21" y2="9"></line>
+                <line x1="9" y1="21" x2="9" y2="9"></line>
+            </svg>
+            <h1>Master Command Center</h1>
+        </a>
+        <div class="nav-links">
+            <a href="/">← Back to Home</a>
+        </div>
+    </header>
+
+    <div class="dashboard-grid">
+        <!-- Top Left: Entrance -->
+        <div class="iframe-container">
+            <div class="iframe-header">
+                <span>Entrance Portal</span>
+                <div class="live-dot"></div>
+            </div>
+            <div class="iframe-wrapper">
+                <iframe src="/entrance" scrolling="no"></iframe>
+            </div>
+        </div>
+
+        <!-- Top Right: Exit -->
+        <div class="iframe-container">
+            <div class="iframe-header">
+                <span>Exit Portal</span>
+                <div class="live-dot"></div>
+            </div>
+            <div class="iframe-wrapper">
+                <iframe src="/exit" scrolling="no"></iframe>
+            </div>
+        </div>
+
+        <!-- Bottom: Admin Analytics -->
+        <div class="iframe-container full-width">
+            <div class="iframe-header">
+                <span>System Analytics & Hardware Monitor</span>
+                <div class="live-dot" style="background-color: #10B981; box-shadow: 0 0 8px #10B981;"></div>
+            </div>
+            <div class="iframe-wrapper admin-wrapper">
+                <iframe src="/admin" scrolling="no"></iframe>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

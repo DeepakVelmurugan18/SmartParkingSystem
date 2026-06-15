@@ -1,0 +1,14 @@
+Flask==3.0.0
+Flask-SQLAlchemy
+pymysql
+cryptography
+qrcode[pil]
+Pillow
+Flask-SocketIO
+eventlet
+Flask-APScheduler
+ultralytics
+easyocr
+opencv-python-headless
+gunicorn
+python-dotenv

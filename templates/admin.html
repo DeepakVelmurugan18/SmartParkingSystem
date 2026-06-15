@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartPark Cloud Console</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .nav-btn {
+            padding: 12px 15px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        .nav-btn:hover {
+            background: rgba(0, 229, 255, 0.1);
+            color: var(--primary-cyan);
+        }
+        .nav-btn.active {
+            background: rgba(0, 229, 255, 0.2);
+            color: var(--primary-cyan);
+            border-left: 3px solid var(--primary-cyan);
+        }
+        .demo-btn {
+            background: rgba(255, 234, 0, 0.1);
+            border: 1px solid var(--warning);
+            color: var(--warning);
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .demo-btn:hover {
+            background: rgba(255, 234, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <nav class="top-nav glass-panel">
+        <div class="brand">
+            <h1>SMARTPARK CLOUD</h1>
+            <div class="sys-status">● SYSTEM ONLINE</div>
+        </div>
+        <div class="nav-stats">
+            <span id="current-time">13:42:00 Local</span>
+            <span>Administrator</span>
+            <span>🔔</span>
+            <a href="/" target="_top" style="margin-left: 15px; background: var(--primary-cyan); color: #000; padding: 6px 15px; border-radius: 20px; font-weight: bold; text-decoration: none; transition: all 0.3s;">← Home</a>
+        </div>
+    </nav>
+
+    <div style="display: flex; gap: 20px; padding: 0 30px 30px 30px; align-items: flex-start;">
+        <!-- Navigation Sidebar -->
+        <div class="glass-panel" style="width: 250px; padding: 20px; display: flex; flex-direction: column; gap: 15px; height: calc(100vh - 120px); position: sticky; top: 90px;">
+            <a href="/dashboard" class="nav-btn active">Dashboard</a>
+            <a href="/entrance" class="nav-btn" target="_blank">Entrance Kiosk</a>
+            <a href="/exit" class="nav-btn" target="_blank">Exit Kiosk</a>
+            <a href="/monitor" class="nav-btn" target="_blank">Command Center</a>
+            <div style="flex-grow: 1;"></div>
+            
+            <div style="margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border-light);">
+                <div style="color: var(--primary-cyan); font-weight: bold; margin-bottom: 15px;">Demo Mode Controls</div>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <button id="btn-demo-arrive" class="demo-btn">1. Simulate Arrival</button>
+                    <button id="btn-demo-capture" class="demo-btn">2. Simulate Capture</button>
+                    <button id="btn-demo-ocr" class="demo-btn">3. Simulate OCR Result</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-container" style="flex: 1; padding: 0;">
+        <!-- Main Content Column -->
+        <div class="main-column">
+            
+            <!-- KPI Grid -->
+            <div class="kpi-grid">
+                <div class="glass-panel kpi-card">
+                    <div class="kpi-title">Total Slots</div>
+                    <div class="kpi-value" id="kpi-total">0 <span class="kpi-sub">SLOTS</span></div>
+                </div>
+                <div class="glass-panel kpi-card success">
+                    <div class="kpi-title">Available</div>
+                    <div class="kpi-value" id="kpi-available">0 <span class="kpi-sub">FREE</span></div>
+                </div>
+                <div class="glass-panel kpi-card danger">
+                    <div class="kpi-title">Occupied</div>
+                    <div class="kpi-value" id="kpi-occupied">0 <span class="kpi-sub">CARS</span></div>
+                </div>
+                <div class="glass-panel kpi-card warning">
+                    <div class="kpi-title">Today's Revenue</div>
+                    <div class="kpi-value">₹<span id="kpi-revenue">0</span></div>
+                </div>
+                <div class="glass-panel kpi-card primary">
+                    <div class="kpi-title">AI Accuracy</div>
+                    <div class="kpi-value" id="kpi-ai-accuracy">96.5% <span class="kpi-sub">OCR</span></div>
+                </div>
+            </div>
+
+            <!-- Parking Layout & AI Prediction -->
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 25px;">
+                <div class="glass-panel map-panel">
+                    <div class="section-header">
+                        <div class="section-title">◎ Live Parking Telemetry</div>
+                        <span style="color: var(--success); font-size: 0.8rem;">● LIVE</span>
+                    </div>
+                    <div class="parking-layout">
+                        <div class="entrance-marker">⬇ ENTRANCE GATE</div>
+                        <div class="slots-grid" id="main-parking-grid">
+                            <!-- Slots generated via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 25px;">
+                    <div class="ai-prediction-card">
+                        <div style="color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem;">AI Predicted Occupancy (5 PM)</div>
+                        <div class="ai-pred-val" id="ai-occupancy-val">-- / 50</div>
+                        <div style="color: var(--success); font-weight: 600;">Confidence: 96%</div>
+                        <div style="margin-top: 15px; font-size: 0.8rem; color: var(--text-secondary);">Recommendation: <span style="color: var(--warning)">Increase Surge Pricing (1.5x)</span></div>
+                    </div>
+                    
+                    <!-- Analytics Mini Chart -->
+                    <div class="glass-panel side-panel" style="flex: 1;">
+                        <div class="section-header">
+                            <div class="section-title">📈 Occupancy Trend</div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="occupancyChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vehicle Logs Table -->
+            <div class="glass-panel table-panel">
+                <div class="section-header">
+                    <div class="section-title">📋 Live Vehicle Logs</div>
+                    <input type="text" id="search-logs" placeholder="Search logs..." style="background: rgba(0,0,0,0.5); border: 1px solid var(--border-light); color: white; padding: 8px 15px; border-radius: 6px; outline: none;">
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Plate Number</th>
+                            <th>Allocated Slot</th>
+                            <th>Entry Time</th>
+                            <th>Exit Time</th>
+                            <th>Payment</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logs-body">
+                        <!-- Logs injected by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+        <!-- Right Side Column -->
+        <div class="side-column">
+            
+            <!-- Live Camera Feeds -->
+            <div class="glass-panel side-panel" style="padding: 10px;">
+                <div class="section-header" style="margin-bottom: 5px;">
+                    <div class="section-title">📹 Entrance Camera</div>
+                </div>
+                <img id="admin-entrance-cam" src="" style="width: 100%; border-radius: 6px; display: none;" />
+                <div id="admin-entrance-placeholder" style="color: #666; text-align: center; padding: 20px;">Awaiting Feed...</div>
+                
+                <div class="section-header" style="margin-top: 15px; margin-bottom: 5px;">
+                    <div class="section-title">📹 Exit Camera</div>
+                </div>
+                <img id="admin-exit-cam" src="" style="width: 100%; border-radius: 6px; display: none;" />
+                <div id="admin-exit-placeholder" style="color: #666; text-align: center; padding: 20px;">Awaiting Feed...</div>
+            </div>
+
+            <!-- AI Monitoring Panel -->
+            <div class="glass-panel side-panel">
+                <div class="section-header">
+                    <div class="section-title">🧠 AI Subsystems</div>
+                </div>
+                <div class="status-list">
+                    <div class="status-item">
+                        <span class="status-label">YOLOv8 Detection</span>
+                        <div class="indicator on"></div>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">PaddleOCR Engine</span>
+                        <div class="indicator on"></div>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Database Sync</span>
+                        <div class="indicator on"></div>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Flask API</span>
+                        <div class="indicator on"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hardware Monitor -->
+            <div class="glass-panel side-panel">
+                <div class="section-header">
+                    <div class="section-title">⚙️ Hardware Monitor</div>
+                </div>
+                <div class="status-list" id="hardware-list">
+                    <div class="status-item">
+                        <span class="status-label">Entrance NodeMCU</span>
+                        <span style="color: var(--success); font-family: monospace;">ONLINE</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Gate Servo Status</span>
+                        <span id="hw-gate-status" style="color: var(--danger); font-family: monospace; font-weight: bold;">CLOSED</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">IR Sensor A1</span>
+                        <span id="hw-a1" style="color: var(--text-secondary); font-family: monospace;">Idle</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">IR Sensor A2</span>
+                        <span id="hw-a2" style="color: var(--text-secondary); font-family: monospace;">Idle</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">IR Sensor A3</span>
+                        <span id="hw-a3" style="color: var(--text-secondary); font-family: monospace;">Idle</span>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; display: flex; gap: 10px;">
+                    <button id="btn-open-gate" style="flex: 1; padding: 10px; background: rgba(0,230,118,0.1); border: 1px solid var(--success); color: var(--success); border-radius: 6px; cursor: pointer; font-weight: bold;">FORCE OPEN</button>
+                    <button id="btn-close-gate" style="flex: 1; padding: 10px; background: rgba(255,23,68,0.1); border: 1px solid var(--danger); color: var(--danger); border-radius: 6px; cursor: pointer; font-weight: bold;">FORCE CLOSE</button>
+                </div>
+            </div>
+
+            <!-- Live Activity Feed -->
+            <div class="glass-panel side-panel" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
+                <div class="section-header">
+                    <div class="section-title">⚡ Live Activity</div>
+                </div>
+                <div class="activity-feed" id="activity-feed">
+                    <div class="activity-item">
+                        <span class="act-time">System initialized</span>
+                        <span class="act-desc">Dashboard connected to WebSocket.</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Manual Simulation Controls (Hidden visually but accessible for demo) -->
+    <div style="display: none;">
+        <button id="sim-ultrasonic">Sim</button>
+        <button id="sim-camera-success">Sim</button>
+        <button id="sim-camera-fail">Sim</button>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+    <script>
+        // Update clock
+        setInterval(() => {
+            document.getElementById('current-time').textContent = new Date().toLocaleTimeString() + ' Local';
+        }, 1000);
+    </script>
+</body>
+</html>
